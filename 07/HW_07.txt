@@ -1,0 +1,101 @@
+﻿1. Установить Apache2. Прислать лог вводимых команд либо скриншот.
+
+sudo apt update
+sudo apt install apache2
+
+------------------------------------
+
+
+2. Установить MySQL. Проверить работу, через консольного клиента, проверить команды select user from mysql.users; и select * from users;
+
+sudo apt update
+sudo apt install mysql-server mysql-client 
+mysql -V
+mysql  Ver 8.0.23-0ubuntu0.20.04.1 for Linux on x86_64 ((Ubuntu))
+sudo mysql_secure_installation
+sudo mysql
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| sys                |
++--------------------+
+5 rows in set (0.01 sec)
+
+mysql> SELECT user,host FROM mysql.user;
++------------------+-----------+
+| user             | host      |
++------------------+-----------+
+| debian-sys-maint | localhost |
+| mysql.infoschema | localhost |
+| mysql.session    | localhost |
+| mysql.sys        | localhost |
+| phpmyadmin       | localhost |
+| root             | localhost |
++------------------+-----------+
+6 rows in set (0.01 sec)
+
+mysql> exit
+Bye
+
+
+------------------------------------
+
+
+
+3. Установить php7.2 и phpmyadmin
+
+sudo apt update
+sudo apt install phpmyadmin php-mbstring php-zip php-gd php-json php-curl
+sudo dpkg -l | grep php
+ 
+sudo phpenmod mcrypt
+sudo phpenmod mbstring
+sudo a2enconf phpmyadmin
+sudo systemctl restart apache2
+
+http://192.168.0.187/phpmyadmin/
+
+ 
+------------------------------------
+
+4. * Установить Nginx и настроить его на работу с php-fpm.
+
+sudo apt install nginx
+
+sudo apt install php-fpm php-mysql
+
+sudo mkdir /var/www/fdmitry.tk
+sudo chown -R $USER:$USER /var/www/fdmitry.tk
+sudo nano /etc/nginx/sites-available/fdmitry.tk
+
+server {
+    listen 80;
+    server_name fdmitry.tk www.fdmitry.tk;
+    root /var/www/fdmitry.tk;
+
+    index index.html index.htm index.php;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+     }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+}
+
+
+sudo ln -s /etc/nginx/sites-available/fdmitry.tk /etc/nginx/sites-enabled/
+sudo nginx –t
+sudo systemctl reload nginx
